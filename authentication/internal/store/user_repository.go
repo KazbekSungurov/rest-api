@@ -1,0 +1,58 @@
+package store
+
+import (
+	"authentication/domain/model"
+	"errors"
+)
+
+// UserRepository ...
+type UserRepository struct {
+	Store *Store
+}
+
+// FindByEmail searchs and returns user by email
+func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
+	user := &model.User{}
+	if err := r.Store.Db.QueryRow("SELECT * FROM users WHERE email = $1",
+		email).Scan(
+		&user.UserID,
+		&user.Email,
+		&user.Password,
+		&user.Verified,
+		&user.Role,
+	); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// Create ...
+func (r *UserRepository) Create(u *model.User) (*model.User, error) {
+	if err := u.Validate(); err != nil {
+		return nil, err
+	}
+
+	var emailIsUsed bool
+	err := r.Store.Db.QueryRow("SELECT EXISTS (SELECT email FROM users WHERE email = $1)", u.Email).Scan(&emailIsUsed)
+	if err != nil {
+		return nil, err
+	}
+
+	if emailIsUsed {
+		return nil, errors.New("Email already in use")
+	}
+
+	if err := r.Store.Db.QueryRow(
+		`INSERT INTO users 
+		(email, password, role, verified) 
+		VALUES ($1, $2, $3, $4) 
+		RETURNING id`,
+		u.Email,
+		u.Password,
+		string(u.Role),
+		u.Verified,
+	).Scan(&u.UserID); err != nil {
+		return nil, err
+	}
+	return u, nil
+}

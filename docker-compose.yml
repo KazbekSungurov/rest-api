@@ -1,0 +1,107 @@
+version: '3.9'
+
+services:
+    pgadmin:
+        container_name: pgadmin
+        image: dpage/pgadmin4
+        env_file:
+            - .env
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+            - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+        ports:
+            - "5050:80"
+        restart: unless-stopped
+        volumes:
+            - pgadmin:/root/.pgadmin
+        networks:
+            - new
+
+    authservice:
+        container_name: authservice
+        build:
+            dockerfile: dockerfile
+            context: ./authentication
+        ports:
+            - "1111:1111"
+        env_file:
+            - .env
+        environment:
+            - SERVER_HOST=${AUTH_SERVER_HOST}
+            - ENV=prod
+        tty: true
+        restart: on-failure
+        volumes:
+            - api:/authentication/
+        networks:
+            - new
+
+    auth_psql_db:
+        container_name: authdb
+        image: postgres:latest
+        env_file:
+            - .env
+        environment:
+            - POSTGRES_USER=${AUTH_POSTGRES_USER}
+            - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+            - POSTGRES_DB=${AUTH_POSTGRES_DB}
+            - POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+            - POSTGRES_SSLMODE=${AUTH_POSTGRES_SSLMODE}
+        ports:
+            - "8081:5432"
+        restart: always
+        volumes:
+            - database-data:/var/lib/postgresql/auth/data/
+        networks:
+            new:
+                aliases:
+                    - database
+
+    auth_migrate:
+        container_name: auth_migrate
+        image: migrate/migrate
+        restart: on-failure
+        networks:
+            - new
+        volumes:
+            - ./authentication/migrations:/authentication/migrations
+        command:
+            [
+                "-path",
+                "authentication/migrations",
+                "-database",
+                "postgres://user:userpass@authdb:5432/authdb?sslmode=disable",
+                "up"
+            ]
+        links:
+            - auth_psql_db
+        depends_on:
+            - auth_psql_db
+
+    gateway_service:
+        container_name: gateway_service
+        build:
+            dockerfile: dockerfile
+            context: ./gateway
+        ports:
+            - "1110:1110"
+        env_file:
+            - .env
+        environment:
+            - SERVER_HOST=${GATEWAY_SERVER_HOST}
+            - ENV=prod
+        tty: true
+        restart: on-failure
+        volumes:
+            - api:/gateway/
+        networks:
+            - new
+
+networks:
+    new:
+        driver: bridge
+
+volumes:
+    api: null
+    database-data: null
+    pgadmin: null
