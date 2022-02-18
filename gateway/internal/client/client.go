@@ -12,6 +12,16 @@ import (
 var (
 	// AuthLoginService ...
 	AuthLoginService = New(fmt.Sprintf("http://%s:%s", os.Getenv("AUTH_SERVER_DOCKER_HOST"), os.Getenv("AUTH_SERVER_PORT")), "/login")
+	// AuthLogoutService ...
+	AuthLogoutService = New(fmt.Sprintf("http://%s:%s", os.Getenv("AUTH_SERVER_DOCKER_HOST"), os.Getenv("AUTH_SERVER_PORT")), "/logout")
+)
+
+// CtxKey ...
+type CtxKey int8
+
+const (
+	// AccessTokenCtxKey ...
+	AccessTokenCtxKey CtxKey = 1
 )
 
 // Client ...

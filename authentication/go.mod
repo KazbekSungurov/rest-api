@@ -11,7 +11,7 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/twinj/uuid v1.0.0
-	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 )
 
 require (

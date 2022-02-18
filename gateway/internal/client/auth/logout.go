@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"gateway/internal/apperror"
 	"gateway/internal/client"
 	"gateway/pkg/response"
@@ -15,13 +16,19 @@ func Logout(ctx context.Context, c *client.Client, body io.Reader) (*response.Se
 		return nil, err
 	}
 
-	resp, err := c.Base.CreateAndSendRequest(ctx, "POST", url, body)
+	req, err := c.Base.CreateRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("%v", ctx.Value(client.AccessTokenCtxKey)))
+
+	resp, err := c.Base.SendRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.IsOk {
-		resp, err := c.Base.ReadResponse(resp)
+		resp, err := c.Base.ReadResponse(resp, []string{"Access-Token"})
 		if err != nil {
 			return nil, err
 		}

@@ -50,8 +50,10 @@ func (c *BaseClient) BuildURL(endpoint string, filters []FilterOptions) (string,
 	return parsedURL.String(), nil
 }
 
-// CreateAndSendRequest ...
-func (c *BaseClient) CreateAndSendRequest(ctx context.Context, method, url string, body io.Reader) (*APIResponse, error) {
+// CreateRequest ...
+// default headers: "Accept", "application/json"
+// 					"Content-Type", "application/json"
+func (c *BaseClient) CreateRequest(method, url string, body io.Reader) (*http.Request, error) {
 	c.Logger.Debug("create new request")
 
 	req, err := http.NewRequest(method, url, body)
@@ -60,10 +62,6 @@ func (c *BaseClient) CreateAndSendRequest(ctx context.Context, method, url strin
 		return nil, err
 	}
 
-	ctxTimeOut, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	req = req.WithContext(ctxTimeOut)
-
 	if c.HTTPClient == nil {
 		return nil, ErrNoHTTPClient
 	}
@@ -71,6 +69,17 @@ func (c *BaseClient) CreateAndSendRequest(ctx context.Context, method, url strin
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
+	return req, nil
+}
+
+// SendRequest ...
+func (c *BaseClient) SendRequest(ctx context.Context, req *http.Request) (*APIResponse, error) {
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	ctxTimeOut, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	req = req.WithContext(ctxTimeOut)
 	c.Logger.Debug("sending request...")
 	response, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -88,7 +97,7 @@ func (c *BaseClient) CreateAndSendRequest(ctx context.Context, method, url strin
 }
 
 // ReadResponse ...
-func (c *BaseClient) ReadResponse(resp *APIResponse) (*response.Service, error) {
+func (c *BaseClient) ReadResponse(resp *APIResponse, headersKeys []string) (*response.Service, error) {
 	c.Logger.Debug("read body")
 	tags, err := resp.ReadBody()
 	if err != nil {
@@ -96,9 +105,9 @@ func (c *BaseClient) ReadResponse(resp *APIResponse) (*response.Service, error) 
 	}
 
 	c.Logger.Debug("read headers")
-	headers, err := resp.ReadHeaders([]string{"Access-Token"})
+	headers, err := resp.ReadHeaders(headersKeys)
 	if err != nil {
-		c.Logger.Infof("no cookies in response")
+		c.Logger.Infof("no headers in response")
 	}
 
 	c.Logger.Debug("read cookies")

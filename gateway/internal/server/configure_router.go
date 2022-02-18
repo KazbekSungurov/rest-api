@@ -9,4 +9,5 @@ import (
 // ConfigureRouter ...
 func (s *Server) ConfigureRouter() {
 	s.Router.Handle("POST", "/login", middleware.IsLoggedIn(auth.LoginHandle(client.AuthLoginService)))
+	s.Router.Handle("POST", "/logout", auth.LogoutHandle(client.AuthLogoutService))
 }

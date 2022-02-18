@@ -30,7 +30,7 @@ services:
             - SERVER_HOST=${AUTH_SERVER_HOST}
             - ENV=prod
         tty: true
-        restart: on-failure
+        restart: always
         volumes:
             - api:/authentication/
         networks:

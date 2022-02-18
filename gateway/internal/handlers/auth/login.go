@@ -26,7 +26,7 @@ func LoginHandle(service *client.Client) httprouter.Handle {
 		loginService, err := auth.Login(r.Context(), service, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Can't parse link. Errors msg: %v", err)})
+			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("error during response getting from auth service. err: %v", err)})
 		}
 
 		var user *user

@@ -15,6 +15,7 @@ import (
 func LogoutHandle(s *store.Store) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
+		s.Logger.Debugf("Auth token is: %v", r.Header.Get("Authorization"))
 
 		_, err := jwthelper.ExtractTokenMetadata(r)
 		if err != nil {

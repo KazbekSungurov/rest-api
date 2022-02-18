@@ -15,13 +15,18 @@ func Login(ctx context.Context, c *client.Client, body io.Reader) (*response.Ser
 		return nil, err
 	}
 
-	resp, err := c.Base.CreateAndSendRequest(ctx, "POST", url, body)
+	req, err := c.Base.CreateRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Base.SendRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.IsOk {
-		resp, err := c.Base.ReadResponse(resp)
+		resp, err := c.Base.ReadResponse(resp, []string{"Access-Token"})
 		if err != nil {
 			return nil, err
 		}
