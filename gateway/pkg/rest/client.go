@@ -96,7 +96,8 @@ func (c *BaseClient) SendRequest(ctx context.Context, req *http.Request) (*APIRe
 	return &apiResponse, nil
 }
 
-// ReadResponse ...
+// ReadResponse returns http.response with body, cokkies and headers.
+// headers keys need to be send with function call
 func (c *BaseClient) ReadResponse(resp *APIResponse, headersKeys []string) (*response.Service, error) {
 	c.Logger.Debug("read body")
 	tags, err := resp.ReadBody()
