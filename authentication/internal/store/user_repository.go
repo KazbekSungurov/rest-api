@@ -21,6 +21,7 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 		&user.Verified,
 		&user.Role,
 	); err != nil {
+		r.Store.Logger.Errorf("Eror during checking users email or password. Err msg: %w", err)
 		return nil, err
 	}
 	return user, nil
@@ -35,10 +36,12 @@ func (r *UserRepository) Create(u *model.User) (*model.User, error) {
 	var emailIsUsed bool
 	err := r.Store.Db.QueryRow("SELECT EXISTS (SELECT email FROM users WHERE email = $1)", u.Email).Scan(&emailIsUsed)
 	if err != nil {
+		r.Store.Logger.Errorf("Eror during checking users email or password. Err msg: %w", err)
 		return nil, err
 	}
 
 	if emailIsUsed {
+		r.Store.Logger.Errorf("email is used. Err msg: %w", err)
 		return nil, errors.New("Email already in use")
 	}
 
@@ -52,6 +55,7 @@ func (r *UserRepository) Create(u *model.User) (*model.User, error) {
 		string(u.Role),
 		u.Verified,
 	).Scan(&u.UserID); err != nil {
+		r.Store.Logger.Errorf("Eror occured while creating user. Err msg: %w", err)
 		return nil, err
 	}
 	return u, nil

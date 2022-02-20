@@ -18,6 +18,23 @@ var (
 	AuthRegistrationService = New(fmt.Sprintf("http://%s:%s", os.Getenv("AUTH_SERVER_DOCKER_HOST"), os.Getenv("AUTH_SERVER_PORT")), "/registration")
 	// AuthRefreshService ...
 	AuthRefreshService = New(fmt.Sprintf("http://%s:%s", os.Getenv("AUTH_SERVER_DOCKER_HOST"), os.Getenv("AUTH_SERVER_PORT")), "/refresh")
+
+	// CustomerGetAllUsersService ...
+	CustomerGetAllUsersService = New(fmt.Sprintf("http://%s:%s", os.Getenv("USER_SERVER_DOCKER_HOST"), os.Getenv("USER_SERVER_PORT")), "/users")
+	// CustomerUserService using methods:
+	// "POST" to create
+	// "PUT" to update
+	// "GET" to get one by id. Using querry params (/user/:id)
+	// "DELETE" to delete by id. Using querry params (/user/:id)
+	CustomerUserService = New(fmt.Sprintf("http://%s:%s", os.Getenv("USER_SERVER_DOCKER_HOST"), os.Getenv("USER_SERVER_PORT")), "/user")
+	// CustomerGetAllPetsService ...
+	CustomerGetAllPetsService = New(fmt.Sprintf("http://%s:%s", os.Getenv("USER_SERVER_DOCKER_HOST"), os.Getenv("USER_SERVER_PORT")), "/pets")
+	// CustomerPetService using methods:
+	// "POST" to create
+	// "PUT" to update
+	// "GET" to get one by id. Using querry params (/user/:id)
+	// "DELETE" to delete by id. Using querry params (/user/:id)
+	CustomerPetService = New(fmt.Sprintf("http://%s:%s", os.Getenv("USER_SERVER_DOCKER_HOST"), os.Getenv("USER_SERVER_PORT")), "/pet")
 )
 
 // CtxKey ...
@@ -28,6 +45,10 @@ const (
 	AccessTokenCtxKey CtxKey = 1
 	// RefreshTokenCtxKey ...
 	RefreshTokenCtxKey CtxKey = 2
+	// CustomerGetQuerryParamsCtxKey ...
+	CustomerGetQuerryParamsCtxKey CtxKey = 3
+	// CustomerDeleteQuerryParamsCtxKey ...
+	CustomerDeleteQuerryParamsCtxKey CtxKey = 4
 )
 
 // Client ...

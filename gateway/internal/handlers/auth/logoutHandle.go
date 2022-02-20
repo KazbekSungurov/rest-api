@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"gateway/internal/client"
 	"gateway/internal/client/auth"
 	"gateway/pkg/response"
@@ -20,7 +19,8 @@ func LogoutHandle(service *client.Client) httprouter.Handle {
 		logoutService, err := auth.Logout(context.WithValue(r.Context(), client.AccessTokenCtxKey, r.Header.Get("Authorization")), service, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("error during response getting from auth service. err: %v", err)})
+			json.NewEncoder(w).Encode(err)
+			return
 		}
 
 		cookies := logoutService.Cookies

@@ -33,7 +33,6 @@ func (s *Server) Start() error {
 	s.ConfigureRouter()
 	s.Logger.Info("Router started successfully")
 
-	s.Logger.Info("User store opening ... ")
 	if err := s.Store.Open(); err != nil {
 		s.Logger.Errorf("err during db opening, err: %w", err)
 		return err

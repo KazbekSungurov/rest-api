@@ -2,10 +2,8 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"gateway/internal/client"
 	"gateway/internal/client/auth"
-	"gateway/pkg/response"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -26,13 +24,15 @@ func LoginHandle(service *client.Client) httprouter.Handle {
 		loginService, err := auth.Login(r.Context(), service, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("error during response getting from auth service. err: %v", err)})
+			json.NewEncoder(w).Encode(err)
+			return
 		}
 
 		var user *user
 		if err := json.Unmarshal(loginService.Body, &user); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("can't parse JSON. err: %v", err)})
+			json.NewEncoder(w).Encode(err)
+			return
 		}
 
 		cookies := loginService.Cookies

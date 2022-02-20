@@ -92,7 +92,6 @@ func (c *BaseClient) SendRequest(ctx context.Context, req *http.Request) (*APIRe
 	}
 
 	apiResponse.IsResponseOk()
-	c.Logger.Debug("response: %v", apiResponse)
 	return &apiResponse, nil
 }
 

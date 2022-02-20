@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"gateway/internal/client"
 	"gateway/internal/client/auth"
 	"gateway/pkg/response"
@@ -20,14 +19,15 @@ func RefreshHandle(service *client.Client) httprouter.Handle {
 		refreshTknCookie, err := r.Cookie("Refresh-Token")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("error occured while reading cookie. err: %v", err)})
+			json.NewEncoder(w).Encode(err)
 			return
 		}
 
 		refreshService, err := auth.Refresh(context.WithValue(r.Context(), client.RefreshTokenCtxKey, refreshTknCookie.Value), service, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("error during response getting from auth service. err: %v", err)})
+			json.NewEncoder(w).Encode(err)
+			return
 		}
 
 		cookies := refreshService.Cookies

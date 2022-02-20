@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"authentication/domain/model"
+	"authentication/internal/apperror"
 	"authentication/internal/store"
 	jwthelper "authentication/pkg/jwt"
-	"authentication/pkg/response"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,38 +27,35 @@ func LoginHandle(s *store.Store) httprouter.Handle {
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			s.Logger.Errorf("Eror during JSON request decoding. Request body: %v, Err msg: %w", r.Body, err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Eror during JSON request decoding. Request body: %v, Err msg: %v", r.Body, err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError(fmt.Sprintf("Eror during JSON request decoding. Request body: %v", r.Body), fmt.Sprintf("%d", http.StatusInternalServerError), err.Error()))
 			return
 		}
 
 		err := s.Open()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			s.Logger.Errorf("Can't open DB. Err msg: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Can't open DB. Err msg: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("Can't open DB", fmt.Sprintf("%d", http.StatusInternalServerError), err.Error()))
 			return
 		}
 		user, err := s.User().FindByEmail(req.Email)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			s.Logger.Errorf("Eror during checking users email or password. Err msg: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Eror during checking users email or password. Err msg: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("Invalid email or password", fmt.Sprintf("%d", http.StatusBadRequest), err.Error()))
 			return
 		}
 
 		err = model.CheckPasswordHash(user.Password, req.Password)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			s.Logger.Errorf("Eror during checking users email or password. Err msg: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Eror during checking users email or password. Err msg: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("Invalid email or password", fmt.Sprintf("%d", http.StatusBadRequest), err.Error()))
 			return
 		}
 
 		tk, err := jwthelper.CreateToken(uint64(user.UserID), string(user.Role))
 		if err != nil {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			s.Logger.Errorf("Eror during createing tokens. Err msg: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Eror during createing tokens. Err msg: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("Eror during createing tokens", fmt.Sprintf("%d", http.StatusUnprocessableEntity), err.Error()))
 			return
 		}
 

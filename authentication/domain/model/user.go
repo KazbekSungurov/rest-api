@@ -1,6 +1,8 @@
 package model
 
 import (
+	"authentication/pkg/logging"
+
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
@@ -34,6 +36,10 @@ const (
 	SexFemale Sex = "female"
 )
 
+var (
+	logger = logging.GetLogger()
+)
+
 // Validate ...
 func (u *User) Validate() error {
 	return validation.ValidateStruct(
@@ -48,6 +54,7 @@ func (u *User) Validate() error {
 func (u *User) WithEncryptedPassword() error {
 	EncryptedPassword, err := EncryptPassword(u.Password)
 	if err != nil {
+		logger.Errorf("bad request. err msg:%v.", err)
 		return err
 	}
 

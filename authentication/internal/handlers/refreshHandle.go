@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"authentication/internal/apperror"
 	"authentication/internal/store"
 	jwthelper "authentication/pkg/jwt"
 	"authentication/pkg/response"
@@ -24,7 +25,7 @@ func RefreshHandle(s *store.Store) httprouter.Handle {
 		token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				s.Logger.Errorf("Unexpected signing method. %v", token.Header["alg"])
-				json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("Unexpected signing method. %v", token.Header["alg"])})
+				json.NewEncoder(w).Encode(json.NewEncoder(w).Encode(apperror.NewAppError("Unexpected signing method", fmt.Sprintf("%d", http.StatusUnprocessableEntity), fmt.Sprintf("%v", token.Header["alg"]))))
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return []byte(os.Getenv("REFRESH_SECRET")), nil
@@ -33,14 +34,14 @@ func RefreshHandle(s *store.Store) httprouter.Handle {
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			s.Logger.Errorf("refresh token expired. err: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("refresh token expired. err: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("refresh token expired", fmt.Sprintf("%d", http.StatusUnauthorized), err.Error()))
 			return
 		}
 
 		if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-			w.WriteHeader(http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			s.Logger.Errorf("can't parse token. err: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("can't parse token. err: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("can't parse token", fmt.Sprintf("%d", http.StatusUnprocessableEntity), err.Error()))
 			return
 		}
 
@@ -50,7 +51,7 @@ func RefreshHandle(s *store.Store) httprouter.Handle {
 			if err != nil {
 				w.WriteHeader(http.StatusUnprocessableEntity)
 				s.Logger.Errorf("eror while parsing token. err: %w", err)
-				json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("eror while parsing token. err: %v", err)})
+				json.NewEncoder(w).Encode(apperror.NewAppError("eror while parsing token", fmt.Sprintf("%d", http.StatusUnprocessableEntity), err.Error()))
 				return
 			}
 
@@ -58,15 +59,14 @@ func RefreshHandle(s *store.Store) httprouter.Handle {
 			if err != nil {
 				w.WriteHeader(http.StatusUnprocessableEntity)
 				s.Logger.Errorf("eror while parsing token. err: %w", err)
-				json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("eror while parsing token. err: %v", err)})
+				json.NewEncoder(w).Encode(apperror.NewAppError("eror while parsing token", fmt.Sprintf("%d", http.StatusUnprocessableEntity), err.Error()))
 				return
 			}
 
 			tk, createErr := jwthelper.CreateToken(userID, role)
 			if createErr != nil {
 				w.WriteHeader(http.StatusUnprocessableEntity)
-				s.Logger.Errorf("can't create token. err: %w", err)
-				json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("can't create token. err: %v", err)})
+				json.NewEncoder(w).Encode(apperror.NewAppError("eror while parsing token", fmt.Sprintf("%d", http.StatusUnprocessableEntity), err.Error()))
 				return
 			}
 
@@ -84,7 +84,7 @@ func RefreshHandle(s *store.Store) httprouter.Handle {
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
 			s.Logger.Error("refresh token is expired")
-			json.NewEncoder(w).Encode(response.Error{Messsage: "refresh token is expired"})
+			json.NewEncoder(w).Encode(apperror.NewAppError("refresh token is expired", fmt.Sprintf("%d", http.StatusUnauthorized), err.Error()))
 		}
 
 	}

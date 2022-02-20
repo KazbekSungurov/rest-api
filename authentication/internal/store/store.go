@@ -36,13 +36,16 @@ func (s *Store) Open() error {
 		s.Config.DataBase.DbName,
 		s.Config.DataBase.Sslmode,
 	)
+	s.Logger.Infof("Auth store opening. Source: %s", dataSourceName)
 
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
+		s.Logger.Errorf("Can't open DB. Err msg: %w", err)
 		return err
 	}
 
 	if err := db.Ping(); err != nil {
+		s.Logger.Errorf("Can't ping DB. Err msg: %w", err)
 		return err
 	}
 

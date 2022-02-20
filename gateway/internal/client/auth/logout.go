@@ -35,6 +35,8 @@ func Logout(ctx context.Context, c *client.Client, body io.Reader) (*response.Se
 		return resp, nil
 	}
 
+	c.Base.Logger.Errorf("%v", apperror.APIError(resp.Error.ErrorCode, resp.Error.Message, resp.Error.DeveloperMessage))
+
 	return nil, apperror.APIError(resp.Error.ErrorCode, resp.Error.Message, resp.Error.DeveloperMessage)
 
 }

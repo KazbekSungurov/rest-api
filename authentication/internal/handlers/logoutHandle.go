@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"authentication/internal/apperror"
 	"authentication/internal/store"
 	jwthelper "authentication/pkg/jwt"
 	"authentication/pkg/response"
@@ -20,8 +21,7 @@ func LogoutHandle(s *store.Store) httprouter.Handle {
 		_, err := jwthelper.ExtractTokenMetadata(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			s.Logger.Errorf("you are unauthorized. err: %w", err)
-			json.NewEncoder(w).Encode(response.Error{Messsage: fmt.Sprintf("you are unauthorized. err: %v", err)})
+			json.NewEncoder(w).Encode(apperror.NewAppError("you are unauthorized", fmt.Sprintf("%d", http.StatusUnauthorized), err.Error()))
 			return
 		}
 
