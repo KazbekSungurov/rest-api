@@ -30,8 +30,6 @@ func Login(ctx context.Context, c *client.Client, body io.Reader) (*response.Ser
 		if err != nil {
 			return nil, err
 		}
-		c.Base.Logger.Infof("%v", resp.Body)
-		c.Base.Logger.Infof("%v", string(resp.Body))
 		return resp, nil
 	}
 
